@@ -8,3 +8,26 @@ RSI & EMA calculation
 Signal generation logic
 Telegram bot integration
 Modular workflow design in n8n
+
+
+# 📊 Trading Bot using n8n
+
+This project is an automated trading alert system built using n8n.
+
+## 🚀 Features
+- Fetches live crypto & gold data
+- Calculates RSI & EMA
+- Generates BUY / SELL / HOLD signals
+- Sends alerts to Telegram
+
+## 🛠 Tech Used
+- n8n (workflow automation)
+- JavaScript
+- Telegram Bot API
+- CoinGecko API
+
+## 📁 Workflow
+Import the JSON file into n8n to run the workflow.
+
+## ⚠️ Note
+This is for educational purposes only, not financial advice.
