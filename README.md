@@ -36,4 +36,5 @@ This is for educational purposes only, not financial advice.
 
 <img width="1360" height="727" alt="image" src="https://github.com/user-attachments/assets/148f800f-f1aa-4553-9a85-a54c4e8d3628" />
 
+![Telegram_bot](https://github.com/user-attachments/assets/2e305891-86b0-471f-ad7b-67d9eec99a34)
 
