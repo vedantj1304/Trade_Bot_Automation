@@ -1,0 +1,268 @@
+{
+  "name": "Trading Bot Simple Working",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyHour",
+              "minute": 10
+            }
+          ]
+        }
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "position": [
+        448,
+        112
+      ],
+      "id": "0d77834a-305f-4f50-80f4-64bdcc1f899d",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1",
+        "options": {}
+      },
+      "name": "Get Crypto",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        656,
+        112
+      ],
+      "id": "aaa91166-2297-4c82-920e-0f3b1cda1488",
+      "typeVersion": 4.4
+    },
+    {
+      "parameters": {
+        "url": "https://api.twelvedata.com/price?symbol=XAU/USD&apikey=062050cec8a340368e820f4656ed2c63",
+        "options": {}
+      },
+      "name": "Get Gold",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        848,
+        112
+      ],
+      "id": "8cc9d33d-721c-44ce-8626-37a2f199326d",
+      "typeVersion": 4.4
+    },
+    {
+      "parameters": {
+        "url": "https://api.twelvedata.com/price?symbol=XAG/USD&apikey=062050cec8a340368e820f4656ed2c63",
+        "options": {}
+      },
+      "name": "Get Silver",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1056,
+        112
+      ],
+      "id": "dfbf1a58-db43-4fd7-bea2-424fe1887328",
+      "typeVersion": 4.4
+    },
+    {
+      "parameters": {
+        "functionCode": "const crypto = $node[\"Get Crypto\"].json;\nconst gold = $node[\"Get Gold\"].json;\n\n// BTC latest price\nconst btcPrice = crypto.prices[crypto.prices.length - 1][1];\n\n// Fix gold type\nconst goldPrice = parseFloat(gold.price || gold.data?.price || 0);\n\n// Silver fallback\nconst silverPrice = 0;\n\nreturn [{\n  btc: parseFloat(btcPrice.toFixed(2)),\n  gold: parseFloat(goldPrice.toFixed(2)),\n  silver: silverPrice\n}];"
+      },
+      "name": "Format Data",
+      "type": "n8n-nodes-base.function",
+      "position": [
+        1248,
+        112
+      ],
+      "id": "c355f2e0-5701-4d3f-ad31-8e560a1fb1bb",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "const prices = $node[\"Get Crypto\"].json.prices;\n\n// Simple RSI (approx)\nlet gains = 0;\nlet losses = 0;\n\nfor (let i = 1; i < prices.length; i++) {\n  const diff = prices[i][1] - prices[i - 1][1];\n  if (diff > 0) gains += diff;\n  else losses += Math.abs(diff);\n}\n\nconst rs = gains / (losses || 1);\nconst rsi = 100 - (100 / (1 + rs));\n\nreturn [{\n  ...$json,\n  rsi: parseFloat(rsi.toFixed(2))\n}];"
+      },
+      "name": "RSI Logic",
+      "type": "n8n-nodes-base.function",
+      "position": [
+        1456,
+        112
+      ],
+      "id": "e7c28ec7-edd2-4b75-9d77-227ff6eb46eb",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "let breakout = \"NO\";\n\nif ($json.btc > $json.ema) {\n  breakout = \"UP\";\n} else if ($json.btc < $json.ema) {\n  breakout = \"DOWN\";\n}\n\nreturn [{\n  ...$json,   // 🔥 THIS LINE IS CRITICAL\n  breakout\n}];"
+      },
+      "name": "Breakout Logic",
+      "type": "n8n-nodes-base.function",
+      "position": [
+        2064,
+        112
+      ],
+      "id": "d731983f-ca73-4f64-bb79-990124ce981b",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "chatId": "-1003825470042",
+        "text": "=🚨 Smart Trading Alert\n\n💰 BTC: {{$json.btc}}\n🥇 GOLD: {{$json.gold}}\n\n📊 RSI: {{$json.rsi}}\n📈 EMA: {{$json.ema}}\n\n📢 Signal: {{$json.signal}}\n⚡ Breakout: {{$json.breakout}}",
+        "additionalFields": {}
+      },
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        2272,
+        112
+      ],
+      "id": "d8b079ef-2e77-449c-b50d-fabdce5409f8",
+      "typeVersion": 1.2,
+      "webhookId": "32d95cc5-c1a9-42dd-8a18-596c05c4ee17",
+      "credentials": {
+        "telegramApi": {
+          "id": "3fTeJNSSxc6yl0BX",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let signal = \"HOLD\";\n\nif ($json.btc > $json.ema && $json.rsi < 50) {\n  signal = \"BUY\";\n} \nelse if ($json.btc < $json.ema && $json.rsi > 50) {\n  signal = \"SELL\";\n}\n\nreturn [{\n  ...$json,\n  signal\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1872,
+        112
+      ],
+      "id": "0ec65096-36c8-40d5-a024-6b422578b078",
+      "name": "Signal Logic"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prices = $node[\"Get Crypto\"].json.prices;\n\nlet sum = 0;\nfor (let i = prices.length - 10; i < prices.length; i++) {\n  sum += prices[i][1];\n}\n\nconst ema = sum / 10;\n\nreturn [{\n  ...$json,\n  ema: parseFloat(ema.toFixed(2))\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        112
+      ],
+      "id": "de936bf9-7cdd-4cfd-8da0-c9bfb9c1d8b0",
+      "name": "EMA Logic"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Get Crypto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Crypto": {
+      "main": [
+        [
+          {
+            "node": "Get Gold",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Gold": {
+      "main": [
+        [
+          {
+            "node": "Get Silver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Silver": {
+      "main": [
+        [
+          {
+            "node": "Format Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Data": {
+      "main": [
+        [
+          {
+            "node": "RSI Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSI Logic": {
+      "main": [
+        [
+          {
+            "node": "EMA Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Breakout Logic": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signal Logic": {
+      "main": [
+        [
+          {
+            "node": "Breakout Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMA Logic": {
+      "main": [
+        [
+          {
+            "node": "Signal Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4f829137-4eba-4936-ad60-afc08cab1c6e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d1507c2cbf6b9460daa67c2a27418845b2a44f1f5f9546089e24186a33cf1894"
+  },
+  "id": "PiEvgEcGfYvL5KZo",
+  "tags": []
+}
