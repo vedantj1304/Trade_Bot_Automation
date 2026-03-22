@@ -37,8 +37,8 @@
     },
     {
       "parameters": {
-        "url": "https://api.twelvedata.com/price?symbol=XAU/USD&apikey=062050cec8a340368e820f4656ed2c63",
-        "options": {}
+        "url": "https://api.twelvedata.com/price?symbol=XAU/USD&apikey=0620556ed2c63",
+        "options": {
       },
       "name": "Get Gold",
       "type": "n8n-nodes-base.httpRequest",
@@ -51,7 +51,7 @@
     },
     {
       "parameters": {
-        "url": "https://api.twelvedata.com/price?symbol=XAG/USD&apikey=062050cec8a340368e820f4656ed2c63",
+        "url": "https://api.twelvedata.com/price?symbol=XAG/USD&apikey=06205563",
         "options": {}
       },
       "name": "Get Silver",
