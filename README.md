@@ -34,3 +34,6 @@ This is for educational purposes only, not financial advice.
 
 <img width="1099" height="266" alt="image" src="https://github.com/user-attachments/assets/e5599a4c-5013-4a4c-bde5-6fd25477f2ab" />
 
+<img width="1360" height="727" alt="image" src="https://github.com/user-attachments/assets/148f800f-f1aa-4553-9a85-a54c4e8d3628" />
+
+
